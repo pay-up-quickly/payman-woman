@@ -3,573 +3,668 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>支払いマン & 支払いウーマン</title>
-
+  <title>PayMan & PayWoman</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&family=Noto+Sans+JP:wght@300;400;600&display=swap" rel="stylesheet" />
-
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --man:     #3b82f6;
-      --man-lt:  #eff6ff;
-      --woman:   #ec4899;
-      --woman-lt:#fdf2f8;
-      --sand:    #f8f7f5;
-      --ink:     #1c1917;
-      --muted:   #78716c;
-      --border:  #e7e0da;
-      --white:   #ffffff;
-      --radius:  20px;
+      --man:      #3b82f6;
+      --man-lt:   #eff6ff;
+      --woman:    #ec4899;
+      --woman-lt: #fdf2f8;
+      --sand:     #f8f7f5;
+      --ink:      #1c1917;
+      --muted:    #78716c;
+      --border:   #e7e0da;
+      --white:    #ffffff;
+      --radius:   20px;
+      --nav-h:    64px;
     }
-
     body {
       font-family: "Noto Sans JP", sans-serif;
       background: var(--sand);
       color: var(--ink);
       min-height: 100dvh;
-      padding: 20px 16px 60px;
+      padding-bottom: calc(var(--nav-h) + 16px);
     }
+    .page { display: none; }
+    .page.active { display: block; }
 
-    .container {
-      max-width: 420px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+    /* AUTH */
+    .auth-wrap {
+      min-height: 100dvh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 32px 24px;
+      background: linear-gradient(160deg, #1e3a5f 0%, #0f172a 100%);
     }
+    .auth-logo { font-family: "Zen Maru Gothic", sans-serif; font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .auth-logo span { color: var(--man); }
+    .auth-sub { font-size: 12px; color: rgba(255,255,255,.45); margin-bottom: 32px; }
+    .auth-card {
+      background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.13);
+      border-radius: 24px; padding: 26px 22px; width: 100%; max-width: 380px; backdrop-filter: blur(12px);
+    }
+    .auth-title { font-family: "Zen Maru Gothic", sans-serif; font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 18px; text-align: center; }
+    .auth-field { margin-bottom: 13px; }
+    .auth-field label { display: block; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.48); letter-spacing: .06em; margin-bottom: 5px; }
+    .auth-field input {
+      width: 100%; background: rgba(255,255,255,.08); border: 1.5px solid rgba(255,255,255,.14);
+      border-radius: 12px; padding: 12px 14px; font-family: inherit; font-size: 15px;
+      color: #fff; outline: none; -webkit-appearance: none; transition: border-color .2s;
+    }
+    .auth-field input::placeholder { color: rgba(255,255,255,.22); }
+    .auth-field input:focus { border-color: var(--man); }
+    .auth-hint { font-size: 10px; color: rgba(255,255,255,.3); margin-top: 4px; }
+    .auth-btn {
+      width: 100%; padding: 14px; background: var(--man); color: #fff; border: none;
+      border-radius: 14px; font-family: "Zen Maru Gothic", sans-serif; font-size: 15px; font-weight: 700;
+      cursor: pointer; margin-top: 4px; box-shadow: 0 6px 20px rgba(59,130,246,.4);
+      transition: transform .15s; -webkit-tap-highlight-color: transparent;
+    }
+    .auth-btn:active { transform: scale(.97); }
+    .auth-btn:disabled { background: #475569; box-shadow: none; }
+    .auth-link { text-align: center; margin-top: 14px; font-size: 12px; color: rgba(255,255,255,.4); }
+    .auth-link a { color: var(--man); text-decoration: none; font-weight: 600; }
+    .auth-error {
+      background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.3);
+      border-radius: 10px; padding: 10px 13px; font-size: 12px; color: #fca5a5;
+      margin-bottom: 13px; display: none;
+    }
+    .auth-error.show { display: block; }
 
-    /* ── HEADER ── */
-    .header {
-      background: var(--white);
-      border-radius: var(--radius);
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    /* BOTTOM NAV */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-h);
+      background: var(--white); border-top: 1px solid var(--border);
+      display: none; align-items: center; justify-content: space-around;
+      padding: 0 8px 4px; z-index: 100;
     }
-    .header h1 {
-      font-family: "Zen Maru Gothic", sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--ink);
+    .bottom-nav.visible { display: flex; }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+      padding: 8px 0; cursor: pointer; border: none; background: none; color: var(--muted);
+      transition: color .2s; position: relative; -webkit-tap-highlight-color: transparent;
     }
-    .header h1 span { color: var(--man); }
+    .nav-item.active { color: var(--man); }
+    .nav-icon { font-size: 22px; line-height: 1; }
+    .nav-label { font-size: 10px; font-weight: 600; }
+    .nav-badge {
+      position: absolute; top: 4px; right: calc(50% - 20px);
+      background: var(--woman); color: #fff; font-size: 9px; font-weight: 700;
+      border-radius: 100px; padding: 1px 5px; display: none;
+    }
+    .nav-badge.show { display: block; }
 
-    /* ── DIFF CARD ── */
+    /* CONTENT */
+    .content { max-width: 480px; margin: 0 auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 14px; }
+    .card { background: var(--white); border-radius: var(--radius); padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+    .card-title { font-family: "Zen Maru Gothic", sans-serif; font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .07em; margin-bottom: 14px; }
+
+    /* DASHBOARD */
+    .hero-upload {
+      border-radius: 18px; overflow: hidden; height: 48vw; max-height: 240px;
+      background: linear-gradient(135deg, #1e3a5f, #3b82f6);
+      display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative;
+    }
+    .hero-upload img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
+    .hero-placeholder { display: flex; flex-direction: column; align-items: center; gap: 8px; color: rgba(255,255,255,.55); font-size: 12px; z-index: 1; }
+    .hero-placeholder .hero-icon { font-size: 34px; }
+    #hero-input { display: none; }
+
     .diff-card {
-      background: linear-gradient(135deg, #1e40af, #3b82f6);
-      border-radius: var(--radius);
-      padding: 28px 20px;
-      color: white;
-      text-align: center;
-      box-shadow: 0 8px 24px rgba(59,130,246,.35);
+      background: linear-gradient(135deg, #1e40af, #3b82f6); border-radius: var(--radius);
+      padding: 22px 18px; color: white; text-align: center; box-shadow: 0 8px 24px rgba(59,130,246,.28);
     }
-    .diff-label {
-      font-size: 12px;
-      font-weight: 600;
-      opacity: .75;
-      letter-spacing: .08em;
-      margin-bottom: 8px;
-    }
-    .diff-amount {
-      font-family: "Zen Maru Gothic", sans-serif;
-      font-size: 40px;
-      font-weight: 700;
-      letter-spacing: -.02em;
-    }
-    .diff-status {
-      font-size: 13px;
-      opacity: .85;
-      margin-top: 8px;
-      line-height: 1.5;
-    }
+    .diff-label { font-size: 11px; font-weight: 600; opacity: .7; letter-spacing: .08em; margin-bottom: 6px; }
+    .diff-amount { font-family: "Zen Maru Gothic", sans-serif; font-size: 36px; font-weight: 700; }
+    .diff-status { font-size: 12px; opacity: .82; margin-top: 6px; line-height: 1.5; }
 
-    /* ── TOTALS ROW ── */
-    .totals {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .total-box {
-      border-radius: 14px;
-      padding: 14px 16px;
-      text-align: center;
-    }
-    .total-box.man   { background: var(--man-lt);    border: 1.5px solid var(--man); }
-    .total-box.woman { background: var(--woman-lt);  border: 1.5px solid var(--woman); }
-    .total-box .tb-label { font-size: 11px; font-weight: 600; opacity: .7; margin-bottom: 4px; }
-    .total-box.man   .tb-label { color: var(--man); }
+    .totals { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .total-box { border-radius: 14px; padding: 14px; text-align: center; }
+    .total-box.man   { background: var(--man-lt);   border: 1.5px solid var(--man); }
+    .total-box.woman { background: var(--woman-lt); border: 1.5px solid var(--woman); }
+    .tb-label { font-size: 11px; font-weight: 600; opacity: .7; margin-bottom: 4px; }
+    .total-box.man .tb-label { color: var(--man); }
     .total-box.woman .tb-label { color: var(--woman); }
-    .total-box .tb-amount { font-size: 20px; font-weight: 700; font-family: "Zen Maru Gothic", sans-serif; }
-    .total-box.man   .tb-amount { color: var(--man); }
+    .tb-amount { font-size: 20px; font-weight: 700; font-family: "Zen Maru Gothic", sans-serif; }
+    .total-box.man .tb-amount { color: var(--man); }
     .total-box.woman .tb-amount { color: var(--woman); }
 
-    /* ── FORM CARD ── */
-    .form-card {
-      background: var(--white);
-      border-radius: var(--radius);
-      padding: 22px;
-      box-shadow: 0 2px 12px rgba(0,0,0,.06);
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-    .card-title {
-      font-family: "Zen Maru Gothic", sans-serif;
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--muted);
-      letter-spacing: .06em;
-    }
+    .request-notice { background: var(--woman-lt); border: 1.5px solid var(--woman); border-radius: 14px; padding: 14px 16px; }
+    .rn-label { font-size: 11px; font-weight: 700; color: var(--woman); letter-spacing: .05em; margin-bottom: 8px; }
+    .rn-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(236,72,153,.12); font-size: 13px; }
+    .rn-item:last-child { border-bottom: none; }
+    .rn-amount { font-weight: 700; color: var(--woman); }
 
-    /* ユーザー選択 */
-    .user-select {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
+    .month-total { background: var(--ink); border-radius: 14px; padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; }
+    .mt-label { font-size: 12px; color: rgba(255,255,255,.55); }
+    .mt-amount { font-family: "Zen Maru Gothic", sans-serif; font-size: 24px; font-weight: 700; color: #fff; }
+
+    /* FORM */
+    .user-select { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
     .user-btn {
-      padding: 14px;
-      border-radius: 14px;
-      border: 2px solid var(--border);
-      background: var(--sand);
-      color: var(--muted);
-      font-family: "Zen Maru Gothic", sans-serif;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all .2s;
-      -webkit-tap-highlight-color: transparent;
+      padding: 13px; border-radius: 14px; border: 2px solid var(--border); background: var(--sand);
+      color: var(--muted); font-family: "Zen Maru Gothic", sans-serif; font-size: 13px; font-weight: 700;
+      cursor: pointer; transition: all .2s; -webkit-tap-highlight-color: transparent;
     }
-    .user-btn.active-man {
-      border-color: var(--man);
-      background: var(--man-lt);
-      color: var(--man);
-    }
-    .user-btn.active-woman {
-      border-color: var(--woman);
-      background: var(--woman-lt);
-      color: var(--woman);
-    }
+    .user-btn.active-man   { border-color: var(--man);   background: var(--man-lt);   color: var(--man); }
+    .user-btn.active-woman { border-color: var(--woman); background: var(--woman-lt); color: var(--woman); }
 
-    /* タイトル入力 */
-    .field label {
-      display: block;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--muted);
-      letter-spacing: .05em;
-      margin-bottom: 6px;
+    .field { margin-bottom: 11px; }
+    .field label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .05em; margin-bottom: 5px; }
+    input[type="text"],input[type="date"],input[type="number"],input[type="email"],input[type="password"],textarea {
+      width: 100%; border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 14px;
+      font-family: inherit; font-size: 15px; color: var(--ink); background: var(--sand);
+      outline: none; -webkit-appearance: none; transition: border-color .2s, box-shadow .2s;
     }
-    input[type="text"],
-    input[type="date"],
-    input[type="number"],
-    textarea {
-      width: 100%;
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-family: inherit;
-      font-size: 15px;
-      color: var(--ink);
-      background: var(--sand);
-      outline: none;
-      -webkit-appearance: none;
-      transition: border-color .2s, box-shadow .2s;
-    }
-    input:focus, textarea:focus {
-      border-color: var(--man);
-      box-shadow: 0 0 0 3px rgba(59,130,246,.12);
-      background: var(--white);
-    }
-    textarea { resize: vertical; min-height: 72px; line-height: 1.6; }
+    input:focus,textarea:focus { border-color: var(--man); box-shadow: 0 0 0 3px rgba(59,130,246,.12); background: var(--white); }
+    textarea { resize: vertical; min-height: 68px; line-height: 1.6; }
 
-    /* 金額グリッド */
-    .amount-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .amount-box {
-      background: var(--sand);
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-    }
+    .total-bar { background: var(--ink); border-radius: 12px; padding: 13px 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 11px; }
+    .total-bar label { color: rgba(255,255,255,.55); font-size: 12px; }
+    .total-bar input { background: transparent; border: none; color: #fff; font-size: 22px; font-weight: 700; text-align: right; width: 55%; padding: 0; }
+    .total-bar input:focus { box-shadow: none; background: transparent; }
+    .total-bar input::placeholder { color: rgba(255,255,255,.28); }
+
+    .amount-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 11px; }
+    .amount-box { background: var(--sand); border: 1.5px solid var(--border); border-radius: 12px; padding: 12px; }
     .amount-box label { margin-bottom: 6px; }
-    .amount-box input {
-      background: transparent;
-      border: none;
-      border-bottom: 1.5px solid var(--border);
-      border-radius: 0;
-      padding: 4px 0;
-      font-size: 20px;
-      font-weight: 700;
-    }
+    .amount-box input { background: transparent; border: none; border-bottom: 1.5px solid var(--border); border-radius: 0; padding: 4px 0; font-size: 20px; font-weight: 700; }
     .amount-box input:focus { box-shadow: none; background: transparent; border-bottom-color: var(--man); }
     .amount-box.their-box { border-color: var(--woman); background: var(--woman-lt); }
     .amount-box.their-box input { border-bottom-color: var(--woman); color: var(--woman); }
     .yen-hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
-    /* 合計バー */
-    .total-bar {
-      background: var(--ink);
-      border-radius: 12px;
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .total-bar label { color: rgba(255,255,255,.6); font-size: 12px; }
-    .total-bar input {
-      background: transparent;
-      border: none;
-      color: white;
-      font-size: 24px;
-      font-weight: 700;
-      text-align: right;
-      width: 55%;
-      padding: 0;
-    }
-    .total-bar input:focus { box-shadow: none; background: transparent; }
-    .total-bar input::placeholder { color: rgba(255,255,255,.3); }
-
-    /* 送信ボタン */
     .submit-btn {
-      width: 100%;
-      padding: 15px;
-      background: var(--man);
-      color: white;
-      border: none;
-      border-radius: 14px;
-      font-family: "Zen Maru Gothic", sans-serif;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 6px 18px rgba(59,130,246,.35);
-      transition: transform .15s, box-shadow .15s;
+      width: 100%; padding: 15px; background: var(--man); color: #fff; border: none;
+      border-radius: 14px; font-family: "Zen Maru Gothic", sans-serif; font-size: 15px; font-weight: 700;
+      cursor: pointer; box-shadow: 0 6px 18px rgba(59,130,246,.32); transition: transform .15s;
       -webkit-tap-highlight-color: transparent;
     }
-    .submit-btn:active { transform: scale(.97); box-shadow: 0 2px 8px rgba(59,130,246,.2); }
+    .submit-btn:active { transform: scale(.97); }
     .submit-btn:disabled { background: var(--muted); box-shadow: none; }
 
-    /* ── HISTORY CARD ── */
-    .history-card {
-      background: var(--white);
-      border-radius: var(--radius);
-      padding: 22px;
-      box-shadow: 0 2px 12px rgba(0,0,0,.06);
-    }
-    .history-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-    .history-header span:first-child {
-      font-family: "Zen Maru Gothic", sans-serif;
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--muted);
-      letter-spacing: .06em;
-    }
-    .sync-badge { font-size: 11px; color: #16a34a; font-weight: 600; }
+    .invite-box { background: linear-gradient(135deg, #0f172a, #1e3a5f); border-radius: 16px; padding: 20px; text-align: center; margin-top: 12px; }
+    .invite-label { font-size: 10px; color: rgba(255,255,255,.45); margin-bottom: 8px; letter-spacing: .07em; }
+    .invite-code { font-family: "Zen Maru Gothic", sans-serif; font-size: 22px; font-weight: 700; color: #fff; letter-spacing: .14em; margin-bottom: 12px; word-break: break-all; }
+    .invite-copy-btn { padding: 8px 20px; background: var(--man); color: #fff; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .invite-hint { font-size: 10px; color: rgba(255,255,255,.35); margin-top: 10px; line-height: 1.6; }
 
-    .history-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      max-height: 320px;
-      overflow-y: auto;
-    }
-    .hi-item {
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 14px;
-    }
+    .history-list { display: flex; flex-direction: column; gap: 10px; max-height: 420px; overflow-y: auto; }
+    .hi-item { border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
     .hi-item.man-item   { border-left: 3px solid var(--man); }
     .hi-item.woman-item { border-left: 3px solid var(--woman); }
+    .hi-user { font-size: 11px; font-weight: 700; margin-bottom: 4px; }
+    .hi-user.man   { color: var(--man); }
+    .hi-user.woman { color: var(--woman); }
     .hi-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
     .hi-title-text { font-weight: 600; font-size: 14px; }
     .hi-date { font-size: 11px; color: var(--muted); }
     .hi-bottom { display: flex; gap: 12px; font-size: 12px; color: var(--muted); }
     .hi-bottom strong { color: var(--ink); }
     .hi-bottom .their { color: var(--woman); }
-    .hi-user { font-size: 11px; font-weight: 700; margin-bottom: 4px; }
-    .hi-user.man   { color: var(--man); }
-    .hi-user.woman { color: var(--woman); }
     .hi-note { font-size: 11px; color: var(--muted); margin-top: 4px; }
     .empty { text-align: center; color: var(--muted); padding: 24px; font-size: 13px; }
 
-    /* ── TOAST ── */
-    #toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: var(--ink);
-      color: white;
-      padding: 11px 22px;
-      border-radius: 100px;
-      font-size: 13px;
-      font-weight: 500;
-      opacity: 0;
-      transition: opacity .3s, transform .3s;
-      pointer-events: none;
-      white-space: nowrap;
-      z-index: 999;
-    }
+    /* MYPAGE */
+    .avatar-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 4px 0 16px; }
+    .avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--man), var(--woman)); display: flex; align-items: center; justify-content: center; font-size: 32px; overflow: hidden; cursor: pointer; }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    #avatar-input { display: none; }
+    .avatar-name { font-family: "Zen Maru Gothic", sans-serif; font-size: 18px; font-weight: 700; }
+    .avatar-email { font-size: 12px; color: var(--muted); }
+
+    .pay-apps { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .pay-app-btn { padding: 14px; border-radius: 14px; border: 1.5px solid var(--border); background: var(--sand); font-family: "Zen Maru Gothic", sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; color: var(--ink); -webkit-tap-highlight-color: transparent; }
+    .pay-app-btn.paypay  { border-color: #e11d48; color: #e11d48; background: #fff1f2; }
+    .pay-app-btn.rakuten { border-color: #cc0000; color: #cc0000; background: #fff1f1; }
+
+    .pair-status { background: var(--sand); border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 16px; font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 10px; }
+    .pair-status.paired { border-color: #22c55e; background: #f0fdf4; color: #16a34a; font-weight: 600; }
+
+    .logout-btn { width: 100%; padding: 14px; background: transparent; border: 1.5px solid #fecaca; border-radius: 14px; font-family: "Zen Maru Gothic", sans-serif; font-size: 15px; font-weight: 700; color: #ef4444; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+    /* TOAST */
+    #toast { position: fixed; bottom: calc(var(--nav-h) + 16px); left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink); color: #fff; padding: 11px 22px; border-radius: 100px; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity .3s, transform .3s; pointer-events: none; white-space: nowrap; z-index: 999; }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
 
-<div class="container">
-
-  <!-- ヘッダー -->
-  <div class="header">
-    <h1>支払いマン <span>&</span> 支払いウーマン</h1>
-  </div>
-
-  <!-- 差額カード -->
-  <div class="diff-card">
-    <div class="diff-label">現在の差額</div>
-    <div class="diff-amount" id="diff-amount">¥ 0</div>
-    <div class="diff-status" id="diff-status">計算中…</div>
-  </div>
-
-  <!-- 個人合計 -->
-  <div class="totals">
-    <div class="total-box man">
-      <div class="tb-label">👨 マン合計</div>
-      <div class="tb-amount" id="man-total">¥0</div>
-    </div>
-    <div class="total-box woman">
-      <div class="tb-label">👩 ウーマン合計</div>
-      <div class="tb-amount" id="woman-total">¥0</div>
+<!-- ログイン -->
+<div id="page-login" class="page active">
+  <div class="auth-wrap">
+    <div class="auth-logo">Pay<span>Man</span> & PayWoman</div>
+    <div class="auth-sub">ふたりの支払いを、スマートに。</div>
+    <div class="auth-card">
+      <div class="auth-title">ログイン</div>
+      <div class="auth-error" id="login-error"></div>
+      <div class="auth-field"><label>メールアドレス</label><input type="email" id="login-email" placeholder="example@email.com" /></div>
+      <div class="auth-field"><label>パスワード</label><input type="password" id="login-password" placeholder="••••••••••••" /></div>
+      <button class="auth-btn" id="login-btn" onclick="doLogin()">ログイン</button>
+      <div class="auth-link" style="margin-top:12px;"><a href="#" onclick="showPage('page-reset')">パスワードを忘れた方はこちら</a></div>
+      <div class="auth-link">アカウントをお持ちでない方は <a href="#" onclick="showPage('page-register')">アカウント登録</a></div>
     </div>
   </div>
-
-  <!-- 入力フォーム -->
-  <div class="form-card">
-    <div class="card-title">📝 支払いを記録</div>
-
-    <!-- ユーザー選択 -->
-    <div class="user-select">
-      <button class="user-btn active-man" id="btn-man" onclick="selectUser('man')">👨 支払いマン</button>
-      <button class="user-btn" id="btn-woman" onclick="selectUser('woman')">👩 支払いウーマン</button>
-    </div>
-
-    <!-- ① タイトル -->
-    <div class="field">
-      <label>① タイトル</label>
-      <input type="text" id="title" placeholder="例: スーパーの買い物" />
-    </div>
-
-    <!-- ① 日付 -->
-    <div class="field">
-      <label>① 日付</label>
-      <input type="date" id="date" />
-    </div>
-
-    <!-- ② 合計金額 -->
-    <div class="total-bar">
-      <label>② 合計金額</label>
-      <input type="number" inputmode="numeric" id="total" placeholder="0" oninput="autoCalc()" />
-    </div>
-
-    <!-- ③④ 自分 / 相手 -->
-    <div class="amount-grid">
-      <div class="amount-box">
-        <label>③ 自分が支払った</label>
-        <input type="number" inputmode="numeric" id="myShare" placeholder="0" oninput="autoCalc()" />
-        <div class="yen-hint">円</div>
-      </div>
-      <div class="amount-box their-box">
-        <label>④ 相手への請求</label>
-        <input type="number" inputmode="numeric" id="theirShare" placeholder="0" />
-        <div class="yen-hint">円</div>
-      </div>
-    </div>
-
-    <!-- ⑤ 備考 -->
-    <div class="field">
-      <label>⑤ 備考</label>
-      <textarea id="note" placeholder="メモがあれば…"></textarea>
-    </div>
-
-    <!-- ⑥ 送信ボタン -->
-    <button class="submit-btn" id="submitBtn" onclick="saveData()">💸 記録する</button>
-  </div>
-
-  <!-- 履歴 -->
-  <div class="history-card">
-    <div class="history-header">
-      <span>📋 支払い履歴</span>
-      <span class="sync-badge" id="sync-status">✅ 同期中</span>
-    </div>
-    <div class="history-list" id="history-list">
-      <div class="empty">読み込み中…</div>
-    </div>
-  </div>
-
 </div>
+
+<!-- 新規登録 -->
+<div id="page-register" class="page">
+  <div class="auth-wrap">
+    <div class="auth-logo">Pay<span>Man</span> & PayWoman</div>
+    <div class="auth-sub">アカウントを作成してください</div>
+    <div class="auth-card">
+      <div class="auth-title">アカウント登録</div>
+      <div class="auth-error" id="register-error"></div>
+      <div class="auth-field"><label>ニックネーム（必須）</label><input type="text" id="reg-name" placeholder="例: たろう" /></div>
+      <div class="auth-field"><label>メールアドレス（必須）</label><input type="email" id="reg-email" placeholder="example@email.com" /></div>
+      <div class="auth-field"><label>パスワード（必須）</label><input type="password" id="reg-password" placeholder="英数字12文字以上" /><div class="auth-hint">英字・数字を含む12文字以上</div></div>
+      <div class="auth-field"><label>パスワード確認（必須）</label><input type="password" id="reg-password2" placeholder="もう一度入力" /></div>
+      <div class="auth-field"><label>招待コード（任意）</label><input type="text" id="reg-invite" placeholder="お持ちの方はこちらに入力" /></div>
+      <button class="auth-btn" id="register-btn" onclick="doRegister()">登録する</button>
+      <div class="auth-link">すでにアカウントをお持ちの方は <a href="#" onclick="showPage('page-login')">ログイン</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- パスワードリセット -->
+<div id="page-reset" class="page">
+  <div class="auth-wrap">
+    <div class="auth-logo">Pay<span>Man</span> & PayWoman</div>
+    <div class="auth-sub">パスワードをリセットします</div>
+    <div class="auth-card">
+      <div class="auth-title">パスワード再設定</div>
+      <div class="auth-error" id="reset-error"></div>
+      <div class="auth-field"><label>登録済みのメールアドレス</label><input type="email" id="reset-email" placeholder="example@email.com" /></div>
+      <button class="auth-btn" onclick="doReset()">再設定メールを送信</button>
+      <div class="auth-link"><a href="#" onclick="showPage('page-login')">ログインに戻る</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ダッシュボード -->
+<div id="page-dashboard" class="page">
+  <div class="content">
+    <div class="hero-upload" onclick="document.getElementById('hero-input').click()">
+      <img id="hero-img" src="" style="display:none" />
+      <div class="hero-placeholder" id="hero-placeholder">
+        <span class="hero-icon">🌄</span>
+        <span>タップして画像をアップロード</span>
+      </div>
+    </div>
+    <input type="file" id="hero-input" accept="image/*" onchange="setHeroImage(this)" />
+
+    <div class="request-notice" id="request-notice" style="display:none">
+      <div class="rn-label">💰 支払い依頼が届いています</div>
+      <div id="request-list"></div>
+    </div>
+
+    <div class="month-total">
+      <div class="mt-label">今月の自分の支払い合計</div>
+      <div class="mt-amount" id="month-total-amount">¥0</div>
+    </div>
+
+    <div class="diff-card">
+      <div class="diff-label">現在の差額</div>
+      <div class="diff-amount" id="diff-amount">¥ 0</div>
+      <div class="diff-status" id="diff-status">計算中…</div>
+    </div>
+
+    <div class="totals">
+      <div class="total-box man"><div class="tb-label">👨 マン合計</div><div class="tb-amount" id="man-total">¥0</div></div>
+      <div class="total-box woman"><div class="tb-label">👩 ウーマン合計</div><div class="tb-amount" id="woman-total">¥0</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 支払い履歴</div>
+      <div class="history-list" id="history-list"><div class="empty">読み込み中…</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 支払い登録 -->
+<div id="page-payment" class="page">
+  <div class="content">
+    <div class="card">
+      <div class="card-title">🔗 ペアリング</div>
+      <div id="pair-status-box" class="pair-status">パートナーと未接続</div>
+      <button class="submit-btn" onclick="generateInviteCode()" id="gen-invite-btn">＋ 招待コードを発行</button>
+      <div id="invite-display" style="display:none;">
+        <div class="invite-box">
+          <div class="invite-label">招待コード</div>
+          <div class="invite-code" id="invite-code-text">——</div>
+          <button class="invite-copy-btn" onclick="copyInviteCode()">コピー</button>
+          <div class="invite-hint">このコードをパートナーに送り、<br>登録時に入力してもらうとペアリングされます。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📝 支払いを記録</div>
+      <div class="user-select">
+        <button class="user-btn active-man" id="btn-man" onclick="selectUser('man')">👨 支払いマン</button>
+        <button class="user-btn" id="btn-woman" onclick="selectUser('woman')">👩 支払いウーマン</button>
+      </div>
+      <div style="height:12px"></div>
+      <div class="field"><label>タイトル</label><input type="text" id="title" placeholder="例: スーパーの買い物" /></div>
+      <div class="field"><label>日付</label><input type="date" id="date" /></div>
+      <div class="total-bar"><label>合計金額</label><input type="number" inputmode="numeric" id="total" placeholder="0" oninput="autoCalc()" /></div>
+      <div class="amount-grid">
+        <div class="amount-box"><label>自分が支払った</label><input type="number" inputmode="numeric" id="myShare" placeholder="0" oninput="autoCalc()" /><div class="yen-hint">円</div></div>
+        <div class="amount-box their-box"><label>相手への請求</label><input type="number" inputmode="numeric" id="theirShare" placeholder="0" /><div class="yen-hint">円</div></div>
+      </div>
+      <div class="field"><label>備考</label><textarea id="note" placeholder="メモがあれば…"></textarea></div>
+      <button class="submit-btn" id="submitBtn" onclick="saveData()">💸 記録する</button>
+    </div>
+  </div>
+</div>
+
+<!-- マイページ -->
+<div id="page-mypage" class="page">
+  <div class="content">
+    <div class="card">
+      <div class="avatar-wrap">
+        <div class="avatar" onclick="document.getElementById('avatar-input').click()">
+          <img id="avatar-img" src="" style="display:none" />
+          <span id="avatar-emoji">👤</span>
+        </div>
+        <input type="file" id="avatar-input" accept="image/*" onchange="setAvatar(this)" />
+        <div style="text-align:center">
+          <div class="avatar-name" id="my-nickname">——</div>
+          <div class="avatar-email" id="my-email">——</div>
+        </div>
+      </div>
+      <div class="field"><label>ニックネームを変更</label><input type="text" id="new-nickname" placeholder="新しいニックネームを入力" /></div>
+      <button class="submit-btn" onclick="updateNickname()">保存する</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💳 支払いアプリ</div>
+      <div class="pay-apps">
+        <a class="pay-app-btn paypay" href="#" onclick="openPayApp('paypay://', 'https://paypay.ne.jp'); return false;">🔴 PayPay</a>
+        <a class="pay-app-btn rakuten" href="#" onclick="openPayApp('rakutenpay://', 'https://pay.rakuten.co.jp'); return false;">🦅 楽天Pay</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚙️ アカウント</div>
+      <button class="logout-btn" onclick="doLogout()">ログアウト</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav" id="bottom-nav">
+  <button class="nav-item active" onclick="switchTab('dashboard')" id="nav-dashboard">
+    <span class="nav-icon">🏠</span><span class="nav-label">ホーム</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('payment')" id="nav-payment">
+    <span class="nav-icon">＋</span><span class="nav-label">支払い</span>
+    <span class="nav-badge" id="nav-badge"></span>
+  </button>
+  <button class="nav-item" onclick="switchTab('mypage')" id="nav-mypage">
+    <span class="nav-icon">👤</span><span class="nav-label">マイページ</span>
+  </button>
+</nav>
 
 <div id="toast"></div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-  import {
-    getFirestore, collection, addDoc, serverTimestamp,
-    query, orderBy, onSnapshot
-  } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, setDoc, getDoc, updateDoc, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-  // ── koderのFirebase設定（そのまま使用） ──
-  const firebaseConfig = {
-    apiKey: "AIzaSyDEsw_Ucxtwei_JUmJi81RRVgtg7cOqB-8",
-    authDomain: "shiharae-app.firebaseapp.com",
-    projectId: "shiharae-app",
-    storageBucket: "shiharae-app.firebasestorage.app",
-    messagingSenderId: "431229199345",
-    appId: "1:431229199345:web:2752085e90fd64b98d1a50"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyDEsw_Ucxtwei_JUmJi81RRVgtg7cOqB-8",
+  authDomain: "shiharae-app.firebaseapp.com",
+  projectId: "shiharae-app",
+  storageBucket: "shiharae-app.firebasestorage.app",
+  messagingSenderId: "431229199345",
+  appId: "1:431229199345:web:2752085e90fd64b98d1a50"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const db  = getFirestore(app);
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+let currentUser = null, userProfile = null, unsubPayments = null;
 
-  // ── ユーザー選択 ──
-  let selectedUser = 'man';
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;
+    await loadUserProfile();
+    showApp();
+    loadPayments();
+  } else {
+    currentUser = null;
+    if (unsubPayments) unsubPayments();
+    showPage('page-login');
+    document.getElementById('bottom-nav').classList.remove('visible');
+  }
+});
 
-  window.selectUser = (user) => {
-    selectedUser = user;
-    const manBtn   = document.getElementById('btn-man');
-    const womanBtn = document.getElementById('btn-woman');
-    if (user === 'man') {
-      manBtn.className   = "user-btn active-man";
-      womanBtn.className = "user-btn";
-    } else {
-      womanBtn.className = "user-btn active-woman";
-      manBtn.className   = "user-btn";
+async function loadUserProfile() {
+  const snap = await getDoc(doc(db, 'users', currentUser.uid));
+  userProfile = snap.exists() ? snap.data() : { nickname: currentUser.displayName || 'ユーザー' };
+  document.getElementById('my-nickname').textContent  = userProfile.nickname || '——';
+  document.getElementById('my-email').textContent     = currentUser.email || '——';
+  document.getElementById('avatar-emoji').textContent = userProfile.avatarEmoji || '👤';
+  if (userProfile.partnerId) {
+    const pSnap = await getDoc(doc(db, 'users', userProfile.partnerId));
+    if (pSnap.exists()) {
+      document.getElementById('pair-status-box').textContent = `✅ ${pSnap.data().nickname || 'パートナー'} とペアリング中`;
+      document.getElementById('pair-status-box').className = 'pair-status paired';
+      document.getElementById('gen-invite-btn').style.display = 'none';
     }
-  };
+  }
+  if (userProfile.inviteCode) {
+    document.getElementById('invite-code-text').textContent = userProfile.inviteCode;
+    document.getElementById('invite-display').style.display = 'block';
+  }
+}
 
-  // ── 相手分の自動計算 ──
-  window.autoCalc = () => {
-    const total = parseFloat(document.getElementById('total').value) || 0;
-    const my    = parseFloat(document.getElementById('myShare').value) || 0;
-    const their = Math.max(0, total - my);
-    document.getElementById('theirShare').value = their > 0 ? their : '';
-  };
+function showApp() {
+  ['page-login','page-register','page-reset'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('bottom-nav').classList.add('visible');
+  switchTab('dashboard');
+}
 
-  // ── 保存 ──
-  window.saveData = async () => {
-    const title    = document.getElementById('title').value.trim();
-    const date     = document.getElementById('date').value;
-    const total    = parseFloat(document.getElementById('total').value) || 0;
-    const myShare  = parseFloat(document.getElementById('myShare').value) || 0;
-    const theirShare = parseFloat(document.getElementById('theirShare').value) || 0;
-    const note     = document.getElementById('note').value.trim();
+window.doLogin = async () => {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.classList.remove('show');
+  if (!email || !pass) { showErr(errEl, 'メールとパスワードを入力してください'); return; }
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true; btn.textContent = '...';
+  try { await signInWithEmailAndPassword(auth, email, pass); }
+  catch(e) { showErr(errEl, getAuthError(e.code)); }
+  finally { btn.disabled = false; btn.textContent = 'ログイン'; }
+};
 
-    if (!total) { showToast('⚠️ 金額を入力してください'); return; }
-
-    const btn = document.getElementById('submitBtn');
-    btn.disabled = true;
-    btn.textContent = '保存中…';
-
-    try {
-      await addDoc(collection(db, 'payments'), {
-        user: selectedUser,
-        title: title || '支払い',
-        date: date || new Date().toISOString().split('T')[0],
-        total,
-        myShare,
-        theirShare,
-        note,
-        createdAt: serverTimestamp()
-      });
-      // フォームリセット
-      ['title','total','myShare','theirShare','note'].forEach(id => {
-        document.getElementById(id).value = '';
-      });
-      document.getElementById('date').value = new Date().toISOString().split('T')[0];
-      showToast('✅ 記録しました！');
-    } catch (e) {
-      showToast('❌ 保存に失敗しました');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = '💸 記録する';
+window.doRegister = async () => {
+  const name   = document.getElementById('reg-name').value.trim();
+  const email  = document.getElementById('reg-email').value.trim();
+  const pass   = document.getElementById('reg-password').value;
+  const pass2  = document.getElementById('reg-password2').value;
+  const invite = document.getElementById('reg-invite').value.trim();
+  const errEl  = document.getElementById('register-error');
+  errEl.classList.remove('show');
+  if (!name)  { showErr(errEl, 'ニックネームを入力してください'); return; }
+  if (!email) { showErr(errEl, 'メールアドレスを入力してください'); return; }
+  if (pass.length < 12) { showErr(errEl, 'パスワードは12文字以上にしてください'); return; }
+  if (!/[a-zA-Z]/.test(pass) || !/[0-9]/.test(pass)) { showErr(errEl, 'パスワードは英字・数字を含めてください'); return; }
+  if (pass !== pass2) { showErr(errEl, 'パスワードが一致しません'); return; }
+  const btn = document.getElementById('register-btn');
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    await updateProfile(cred.user, { displayName: name });
+    const userData = { nickname: name, email, createdAt: serverTimestamp() };
+    if (invite) {
+      const snap = await getDocs(query(collection(db, 'users'), where('inviteCode', '==', invite)));
+      if (!snap.empty) {
+        const partnerId = snap.docs[0].id;
+        userData.partnerId = partnerId;
+        await updateDoc(doc(db, 'users', partnerId), { partnerId: cred.user.uid });
+      } else { showToast('招待コードが無効でした（スキップ）'); }
     }
-  };
+    await setDoc(doc(db, 'users', cred.user.uid), userData);
+  } catch(e) { showErr(errEl, getAuthError(e.code)); }
+  finally { btn.disabled = false; btn.textContent = '登録する'; }
+};
 
-  // ── リアルタイム集計 & 履歴表示 ──
-  const q = query(collection(db, 'payments'), orderBy('createdAt', 'desc'));
+window.doReset = async () => {
+  const email = document.getElementById('reset-email').value.trim();
+  const errEl = document.getElementById('reset-error');
+  if (!email) { showErr(errEl, 'メールアドレスを入力してください'); return; }
+  try { await sendPasswordResetEmail(auth, email); showToast('✅ 再設定メールを送信しました'); showPage('page-login'); }
+  catch(e) { showErr(errEl, getAuthError(e.code)); }
+};
 
-  onSnapshot(q, (snapshot) => {
-    let manTotal = 0, womanTotal = 0;
-    const items = [];
+window.doLogout = async () => {
+  if (!confirm('ログアウトしますか？')) return;
+  if (unsubPayments) unsubPayments();
+  await signOut(auth);
+};
 
-    snapshot.forEach((doc) => {
-      const d = doc.data();
-      if (d.user === 'man')   manTotal   += (d.total || d.amount || 0);
-      else                    womanTotal += (d.total || d.amount || 0);
+window.updateNickname = async () => {
+  const name = document.getElementById('new-nickname').value.trim();
+  if (!name || !currentUser) return;
+  await updateDoc(doc(db, 'users', currentUser.uid), { nickname: name });
+  document.getElementById('my-nickname').textContent = name;
+  document.getElementById('new-nickname').value = '';
+  showToast('✅ ニックネームを更新しました');
+};
 
-      const isMan = d.user === 'man';
-      items.push(`
-        <div class="hi-item ${isMan ? 'man-item' : 'woman-item'}">
-          <div class="hi-user ${isMan ? 'man' : 'woman'}">${isMan ? '👨 マン' : '👩 ウーマン'}</div>
-          <div class="hi-top">
-            <span class="hi-title-text">${d.title || '支払い'}</span>
-            <span class="hi-date">${d.date || ''}</span>
-          </div>
-          <div class="hi-bottom">
-            <span>合計 <strong>¥${(d.total || d.amount || 0).toLocaleString()}</strong></span>
-            ${d.theirShare ? `<span>請求 <strong class="their">¥${d.theirShare.toLocaleString()}</strong></span>` : ''}
-          </div>
-          ${d.note ? `<div class="hi-note">📝 ${d.note}</div>` : ''}
-        </div>
-      `);
+window.generateInviteCode = async () => {
+  if (!currentUser) return;
+  const r = () => Math.floor(Math.random()*10);
+  const code = `${r()}${r()}${r()}${r()}-${r()}${r()}${r()}${r()}-${r()}${r()}${r()}${r()}${r()}${r()}${r()}`;
+  await updateDoc(doc(db, 'users', currentUser.uid), { inviteCode: code });
+  document.getElementById('invite-code-text').textContent = code;
+  document.getElementById('invite-display').style.display = 'block';
+  showToast('✅ 招待コードを発行しました');
+};
+
+window.copyInviteCode = () => {
+  const code = document.getElementById('invite-code-text').textContent;
+  navigator.clipboard.writeText(code).then(() => showToast('📋 コピーしました'));
+};
+
+let selectedUser = 'man';
+window.selectUser = (user) => {
+  selectedUser = user;
+  document.getElementById('btn-man').className   = user==='man'   ? 'user-btn active-man'   : 'user-btn';
+  document.getElementById('btn-woman').className = user==='woman' ? 'user-btn active-woman' : 'user-btn';
+};
+
+window.autoCalc = () => {
+  const total = parseFloat(document.getElementById('total').value)||0;
+  const my    = parseFloat(document.getElementById('myShare').value)||0;
+  const their = Math.max(0, total-my);
+  document.getElementById('theirShare').value = their>0 ? their : '';
+};
+
+window.saveData = async () => {
+  const title      = document.getElementById('title').value.trim();
+  const date       = document.getElementById('date').value;
+  const total      = parseFloat(document.getElementById('total').value)||0;
+  const myShare    = parseFloat(document.getElementById('myShare').value)||0;
+  const theirShare = parseFloat(document.getElementById('theirShare').value)||0;
+  const note       = document.getElementById('note').value.trim();
+  if (!total) { showToast('⚠️ 金額を入力してください'); return; }
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = '保存中…';
+  try {
+    await addDoc(collection(db, 'payments'), {
+      user: selectedUser, uid: currentUser?.uid||'',
+      title: title||'支払い', date: date||new Date().toISOString().split('T')[0],
+      total, myShare, theirShare, note, status: 'pending', createdAt: serverTimestamp()
     });
+    ['title','total','myShare','theirShare','note'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+    showToast('✅ 記録しました！');
+  } catch(e) { showToast('❌ 保存に失敗しました'); }
+  finally { btn.disabled=false; btn.textContent='💸 記録する'; }
+};
 
-    // 差額表示
-    const diff = manTotal - womanTotal;
-    const diffEl   = document.getElementById('diff-amount');
-    const statusEl = document.getElementById('diff-status');
-
-    if (diff > 0) {
-      diffEl.textContent   = `¥ ${diff.toLocaleString()}`;
-      statusEl.textContent = `支払いウーマンが ${diff.toLocaleString()}円多く払えばトントン！`;
-    } else if (diff < 0) {
-      diffEl.textContent   = `¥ ${Math.abs(diff).toLocaleString()}`;
-      statusEl.textContent = `支払いマンが ${Math.abs(diff).toLocaleString()}円多く払えばトントン！`;
-    } else {
-      diffEl.textContent   = `¥ 0`;
-      statusEl.textContent = `ふたりは今、ピッタリ同じ支払い額です！`;
-    }
-
-    // 個人合計
-    document.getElementById('man-total').textContent   = `¥${manTotal.toLocaleString()}`;
-    document.getElementById('woman-total').textContent = `¥${womanTotal.toLocaleString()}`;
-
-    // 履歴
-    document.getElementById('history-list').innerHTML =
-      items.length ? items.join('') : '<div class="empty">まだ記録がありません</div>';
-  }, () => {
-    document.getElementById('sync-status').textContent = '❌ 接続エラー';
+function loadPayments() {
+  const q = query(collection(db,'payments'), orderBy('createdAt','desc'));
+  unsubPayments = onSnapshot(q, (snapshot) => {
+    let manTotal=0, womanTotal=0, myMonthTotal=0;
+    const items=[], pending=[];
+    const now = new Date();
+    const thisMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    snapshot.forEach((docSnap) => {
+      const d = docSnap.data();
+      const isMan = d.user==='man';
+      if (isMan) manTotal+=(d.total||0); else womanTotal+=(d.total||0);
+      if (d.uid===currentUser?.uid && d.date?.startsWith(thisMonth)) myMonthTotal+=(d.total||0);
+      if (d.status==='pending' && d.theirShare>0 && d.uid!==currentUser?.uid) pending.push(d);
+      items.push(`
+        <div class="hi-item ${isMan?'man-item':'woman-item'}">
+          <div class="hi-user ${isMan?'man':'woman'}">${isMan?'👨 マン':'👩 ウーマン'}</div>
+          <div class="hi-top"><span class="hi-title-text">${d.title||'支払い'}</span><span class="hi-date">${d.date||''}</span></div>
+          <div class="hi-bottom"><span>合計 <strong>¥${(d.total||0).toLocaleString()}</strong></span>${d.theirShare?`<span>請求 <strong class="their">¥${d.theirShare.toLocaleString()}</strong></span>`:''}</div>
+          ${d.note?`<div class="hi-note">📝 ${d.note}</div>`:''}
+        </div>`);
+    });
+    const diff = manTotal-womanTotal;
+    document.getElementById('diff-amount').textContent = `¥ ${Math.abs(diff).toLocaleString()}`;
+    document.getElementById('diff-status').textContent = diff>0 ? `支払いウーマンが ${diff.toLocaleString()}円多く払えばトントン！` : diff<0 ? `支払いマンが ${Math.abs(diff).toLocaleString()}円多く払えばトントン！` : 'ふたりは今、ピッタリ同じ支払い額です！';
+    document.getElementById('man-total').textContent          = `¥${manTotal.toLocaleString()}`;
+    document.getElementById('woman-total').textContent        = `¥${womanTotal.toLocaleString()}`;
+    document.getElementById('month-total-amount').textContent = `¥${myMonthTotal.toLocaleString()}`;
+    document.getElementById('history-list').innerHTML         = items.length ? items.join('') : '<div class="empty">まだ記録がありません</div>';
+    const noticeEl = document.getElementById('request-notice');
+    const badge    = document.getElementById('nav-badge');
+    if (pending.length>0) {
+      noticeEl.style.display='block'; badge.classList.add('show'); badge.textContent=pending.length;
+      document.getElementById('request-list').innerHTML = pending.map(d=>`<div class="rn-item"><span>${d.title}</span><span class="rn-amount">¥${(d.theirShare||0).toLocaleString()}</span></div>`).join('');
+    } else { noticeEl.style.display='none'; badge.classList.remove('show'); }
   });
+}
 
-  // ── Toast ──
-  let toastTimer;
-  window.showToast = (msg) => {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
-  };
+window.setHeroImage = (input) => {
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=(e)=>{ const img=document.getElementById('hero-img'); img.src=e.target.result; img.style.display='block'; document.getElementById('hero-placeholder').style.display='none'; localStorage.setItem('heroImage',e.target.result); };
+  reader.readAsDataURL(file);
+};
 
-  // 今日の日付をデフォルト設定
-  document.getElementById('date').value = new Date().toISOString().split('T')[0];
+window.setAvatar = (input) => {
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=(e)=>{ const img=document.getElementById('avatar-img'); img.src=e.target.result; img.style.display='block'; document.getElementById('avatar-emoji').style.display='none'; localStorage.setItem('avatarImage',e.target.result); };
+  reader.readAsDataURL(file);
+};
+
+window.openPayApp = (scheme, fallback) => { window.location.href=scheme; setTimeout(()=>{ window.location.href=fallback; },1500); };
+
+function showErr(el,msg){ el.textContent=msg; el.classList.add('show'); }
+function getAuthError(code){
+  return ({'auth/invalid-email':'メールアドレスの形式が正しくありません','auth/user-not-found':'このメールアドレスは登録されていません','auth/wrong-password':'パスワードが間違っています','auth/email-already-in-use':'このメールアドレスはすでに使われています','auth/weak-password':'パスワードが弱すぎます','auth/invalid-credential':'メールアドレスまたはパスワードが正しくありません','auth/too-many-requests':'しばらく時間をおいてから再度お試しください'})[code]||'エラーが発生しました: '+code;
+}
+
+window.addEventListener('load', () => {
+  const hero=localStorage.getItem('heroImage');
+  if(hero){ document.getElementById('hero-img').src=hero; document.getElementById('hero-img').style.display='block'; document.getElementById('hero-placeholder').style.display='none'; }
+  const avatar=localStorage.getItem('avatarImage');
+  if(avatar){ document.getElementById('avatar-img').src=avatar; document.getElementById('avatar-img').style.display='block'; document.getElementById('avatar-emoji').style.display='none'; }
+  document.getElementById('date').value=new Date().toISOString().split('T')[0];
+});
+
+let toastTimer;
+window.showToast=(msg)=>{ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),2800); };
+</script>
+
+<script>
+function showPage(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+window.showPage=showPage;
+function switchTab(tab){ ['dashboard','payment','mypage'].forEach(t=>{ document.getElementById('page-'+t).classList.remove('active'); const n=document.getElementById('nav-'+t); if(n) n.classList.remove('active'); }); document.getElementById('page-'+tab).classList.add('active'); const n=document.getElementById('nav-'+tab); if(n) n.classList.add('active'); }
+window.switchTab=switchTab;
 </script>
 
 </body>
