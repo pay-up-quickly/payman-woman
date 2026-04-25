@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>支払いマン & 支払いウーマン</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&family=Noto+Sans+JP:wght@300;400;600&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --man:     #3b82f6;
+      --man-lt:  #eff6ff;
+      --woman:   #ec4899;
+      --woman-lt:#fdf2f8;
+      --sand:    #f8f7f5;
+      --ink:     #1c1917;
+      --muted:   #78716c;
+      --border:  #e7e0da;
+      --white:   #ffffff;
+      --radius:  20px;
+    }
+
+    body {
+      font-family: "Noto Sans JP", sans-serif;
+      background: var(--sand);
+      color: var(--ink);
+      min-height: 100dvh;
+      padding: 20px 16px 60px;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+    .header h1 {
+      font-family: "Zen Maru Gothic", sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .header h1 span { color: var(--man); }
+
+    /* ── DIFF CARD ── */
+    .diff-card {
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      border-radius: var(--radius);
+      padding: 28px 20px;
+      color: white;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(59,130,246,.35);
+    }
+    .diff-label {
+      font-size: 12px;
+      font-weight: 600;
+      opacity: .75;
+      letter-spacing: .08em;
+      margin-bottom: 8px;
+    }
+    .diff-amount {
+      font-family: "Zen Maru Gothic", sans-serif;
+      font-size: 40px;
+      font-weight: 700;
+      letter-spacing: -.02em;
+    }
+    .diff-status {
+      font-size: 13px;
+      opacity: .85;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
+    /* ── TOTALS ROW ── */
+    .totals {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .total-box {
+      border-radius: 14px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+    .total-box.man   { background: var(--man-lt);    border: 1.5px solid var(--man); }
+    .total-box.woman { background: var(--woman-lt);  border: 1.5px solid var(--woman); }
+    .total-box .tb-label { font-size: 11px; font-weight: 600; opacity: .7; margin-bottom: 4px; }
+    .total-box.man   .tb-label { color: var(--man); }
+    .total-box.woman .tb-label { color: var(--woman); }
+    .total-box .tb-amount { font-size: 20px; font-weight: 700; font-family: "Zen Maru Gothic", sans-serif; }
+    .total-box.man   .tb-amount { color: var(--man); }
+    .total-box.woman .tb-amount { color: var(--woman); }
+
+    /* ── FORM CARD ── */
+    .form-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .card-title {
+      font-family: "Zen Maru Gothic", sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: .06em;
+    }
+
+    /* ユーザー選択 */
+    .user-select {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .user-btn {
+      padding: 14px;
+      border-radius: 14px;
+      border: 2px solid var(--border);
+      background: var(--sand);
+      color: var(--muted);
+      font-family: "Zen Maru Gothic", sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .user-btn.active-man {
+      border-color: var(--man);
+      background: var(--man-lt);
+      color: var(--man);
+    }
+    .user-btn.active-woman {
+      border-color: var(--woman);
+      background: var(--woman-lt);
+      color: var(--woman);
+    }
+
+    /* タイトル入力 */
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: .05em;
+      margin-bottom: 6px;
+    }
+    input[type="text"],
+    input[type="date"],
+    input[type="number"],
+    textarea {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-family: inherit;
+      font-size: 15px;
+      color: var(--ink);
+      background: var(--sand);
+      outline: none;
+      -webkit-appearance: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus, textarea:focus {
+      border-color: var(--man);
+      box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+      background: var(--white);
+    }
+    textarea { resize: vertical; min-height: 72px; line-height: 1.6; }
+
+    /* 金額グリッド */
+    .amount-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .amount-box {
+      background: var(--sand);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .amount-box label { margin-bottom: 6px; }
+    .amount-box input {
+      background: transparent;
+      border: none;
+      border-bottom: 1.5px solid var(--border);
+      border-radius: 0;
+      padding: 4px 0;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .amount-box input:focus { box-shadow: none; background: transparent; border-bottom-color: var(--man); }
+    .amount-box.their-box { border-color: var(--woman); background: var(--woman-lt); }
+    .amount-box.their-box input { border-bottom-color: var(--woman); color: var(--woman); }
+    .yen-hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    /* 合計バー */
+    .total-bar {
+      background: var(--ink);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .total-bar label { color: rgba(255,255,255,.6); font-size: 12px; }
+    .total-bar input {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 24px;
+      font-weight: 700;
+      text-align: right;
+      width: 55%;
+      padding: 0;
+    }
+    .total-bar input:focus { box-shadow: none; background: transparent; }
+    .total-bar input::placeholder { color: rgba(255,255,255,.3); }
+
+    /* 送信ボタン */
+    .submit-btn {
+      width: 100%;
+      padding: 15px;
+      background: var(--man);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-family: "Zen Maru Gothic", sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(59,130,246,.35);
+      transition: transform .15s, box-shadow .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .submit-btn:active { transform: scale(.97); box-shadow: 0 2px 8px rgba(59,130,246,.2); }
+    .submit-btn:disabled { background: var(--muted); box-shadow: none; }
+
+    /* ── HISTORY CARD ── */
+    .history-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .history-header span:first-child {
+      font-family: "Zen Maru Gothic", sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: .06em;
+    }
+    .sync-badge { font-size: 11px; color: #16a34a; font-weight: 600; }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+    .hi-item {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .hi-item.man-item   { border-left: 3px solid var(--man); }
+    .hi-item.woman-item { border-left: 3px solid var(--woman); }
+    .hi-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+    .hi-title-text { font-weight: 600; font-size: 14px; }
+    .hi-date { font-size: 11px; color: var(--muted); }
+    .hi-bottom { display: flex; gap: 12px; font-size: 12px; color: var(--muted); }
+    .hi-bottom strong { color: var(--ink); }
+    .hi-bottom .their { color: var(--woman); }
+    .hi-user { font-size: 11px; font-weight: 700; margin-bottom: 4px; }
+    .hi-user.man   { color: var(--man); }
+    .hi-user.woman { color: var(--woman); }
+    .hi-note { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .empty { text-align: center; color: var(--muted); padding: 24px; font-size: 13px; }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--ink);
+      color: white;
+      padding: 11px 22px;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity .3s, transform .3s;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 999;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ヘッダー -->
+  <div class="header">
+    <h1>支払いマン <span>&</span> 支払いウーマン</h1>
+  </div>
+
+  <!-- 差額カード -->
+  <div class="diff-card">
+    <div class="diff-label">現在の差額</div>
+    <div class="diff-amount" id="diff-amount">¥ 0</div>
+    <div class="diff-status" id="diff-status">計算中…</div>
+  </div>
+
+  <!-- 個人合計 -->
+  <div class="totals">
+    <div class="total-box man">
+      <div class="tb-label">👨 マン合計</div>
+      <div class="tb-amount" id="man-total">¥0</div>
+    </div>
+    <div class="total-box woman">
+      <div class="tb-label">👩 ウーマン合計</div>
+      <div class="tb-amount" id="woman-total">¥0</div>
+    </div>
+  </div>
+
+  <!-- 入力フォーム -->
+  <div class="form-card">
+    <div class="card-title">📝 支払いを記録</div>
+
+    <!-- ユーザー選択 -->
+    <div class="user-select">
+      <button class="user-btn active-man" id="btn-man" onclick="selectUser('man')">👨 支払いマン</button>
+      <button class="user-btn" id="btn-woman" onclick="selectUser('woman')">👩 支払いウーマン</button>
+    </div>
+
+    <!-- ① タイトル -->
+    <div class="field">
+      <label>① タイトル</label>
+      <input type="text" id="title" placeholder="例: スーパーの買い物" />
+    </div>
+
+    <!-- ① 日付 -->
+    <div class="field">
+      <label>① 日付</label>
+      <input type="date" id="date" />
+    </div>
+
+    <!-- ② 合計金額 -->
+    <div class="total-bar">
+      <label>② 合計金額</label>
+      <input type="number" inputmode="numeric" id="total" placeholder="0" oninput="autoCalc()" />
+    </div>
+
+    <!-- ③④ 自分 / 相手 -->
+    <div class="amount-grid">
+      <div class="amount-box">
+        <label>③ 自分が支払った</label>
+        <input type="number" inputmode="numeric" id="myShare" placeholder="0" oninput="autoCalc()" />
+        <div class="yen-hint">円</div>
+      </div>
+      <div class="amount-box their-box">
+        <label>④ 相手への請求</label>
+        <input type="number" inputmode="numeric" id="theirShare" placeholder="0" />
+        <div class="yen-hint">円</div>
+      </div>
+    </div>
+
+    <!-- ⑤ 備考 -->
+    <div class="field">
+      <label>⑤ 備考</label>
+      <textarea id="note" placeholder="メモがあれば…"></textarea>
+    </div>
+
+    <!-- ⑥ 送信ボタン -->
+    <button class="submit-btn" id="submitBtn" onclick="saveData()">💸 記録する</button>
+  </div>
+
+  <!-- 履歴 -->
+  <div class="history-card">
+    <div class="history-header">
+      <span>📋 支払い履歴</span>
+      <span class="sync-badge" id="sync-status">✅ 同期中</span>
+    </div>
+    <div class="history-list" id="history-list">
+      <div class="empty">読み込み中…</div>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, serverTimestamp,
+    query, orderBy, onSnapshot
+  } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+  // ── koderのFirebase設定（そのまま使用） ──
+  const firebaseConfig = {
+    apiKey: "AIzaSyDEsw_Ucxtwei_JUmJi81RRVgtg7cOqB-8",
+    authDomain: "shiharae-app.firebaseapp.com",
+    projectId: "shiharae-app",
+    storageBucket: "shiharae-app.firebasestorage.app",
+    messagingSenderId: "431229199345",
+    appId: "1:431229199345:web:2752085e90fd64b98d1a50"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  // ── ユーザー選択 ──
+  let selectedUser = 'man';
+
+  window.selectUser = (user) => {
+    selectedUser = user;
+    const manBtn   = document.getElementById('btn-man');
+    const womanBtn = document.getElementById('btn-woman');
+    if (user === 'man') {
+      manBtn.className   = "user-btn active-man";
+      womanBtn.className = "user-btn";
+    } else {
+      womanBtn.className = "user-btn active-woman";
+      manBtn.className   = "user-btn";
+    }
+  };
+
+  // ── 相手分の自動計算 ──
+  window.autoCalc = () => {
+    const total = parseFloat(document.getElementById('total').value) || 0;
+    const my    = parseFloat(document.getElementById('myShare').value) || 0;
+    const their = Math.max(0, total - my);
+    document.getElementById('theirShare').value = their > 0 ? their : '';
+  };
+
+  // ── 保存 ──
+  window.saveData = async () => {
+    const title    = document.getElementById('title').value.trim();
+    const date     = document.getElementById('date').value;
+    const total    = parseFloat(document.getElementById('total').value) || 0;
+    const myShare  = parseFloat(document.getElementById('myShare').value) || 0;
+    const theirShare = parseFloat(document.getElementById('theirShare').value) || 0;
+    const note     = document.getElementById('note').value.trim();
+
+    if (!total) { showToast('⚠️ 金額を入力してください'); return; }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = '保存中…';
+
+    try {
+      await addDoc(collection(db, 'payments'), {
+        user: selectedUser,
+        title: title || '支払い',
+        date: date || new Date().toISOString().split('T')[0],
+        total,
+        myShare,
+        theirShare,
+        note,
+        createdAt: serverTimestamp()
+      });
+      // フォームリセット
+      ['title','total','myShare','theirShare','note'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      document.getElementById('date').value = new Date().toISOString().split('T')[0];
+      showToast('✅ 記録しました！');
+    } catch (e) {
+      showToast('❌ 保存に失敗しました');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '💸 記録する';
+    }
+  };
+
+  // ── リアルタイム集計 & 履歴表示 ──
+  const q = query(collection(db, 'payments'), orderBy('createdAt', 'desc'));
+
+  onSnapshot(q, (snapshot) => {
+    let manTotal = 0, womanTotal = 0;
+    const items = [];
+
+    snapshot.forEach((doc) => {
+      const d = doc.data();
+      if (d.user === 'man')   manTotal   += (d.total || d.amount || 0);
+      else                    womanTotal += (d.total || d.amount || 0);
+
+      const isMan = d.user === 'man';
+      items.push(`
+        <div class="hi-item ${isMan ? 'man-item' : 'woman-item'}">
+          <div class="hi-user ${isMan ? 'man' : 'woman'}">${isMan ? '👨 マン' : '👩 ウーマン'}</div>
+          <div class="hi-top">
+            <span class="hi-title-text">${d.title || '支払い'}</span>
+            <span class="hi-date">${d.date || ''}</span>
+          </div>
+          <div class="hi-bottom">
+            <span>合計 <strong>¥${(d.total || d.amount || 0).toLocaleString()}</strong></span>
+            ${d.theirShare ? `<span>請求 <strong class="their">¥${d.theirShare.toLocaleString()}</strong></span>` : ''}
+          </div>
+          ${d.note ? `<div class="hi-note">📝 ${d.note}</div>` : ''}
+        </div>
+      `);
+    });
+
+    // 差額表示
+    const diff = manTotal - womanTotal;
+    const diffEl   = document.getElementById('diff-amount');
+    const statusEl = document.getElementById('diff-status');
+
+    if (diff > 0) {
+      diffEl.textContent   = `¥ ${diff.toLocaleString()}`;
+      statusEl.textContent = `支払いウーマンが ${diff.toLocaleString()}円多く払えばトントン！`;
+    } else if (diff < 0) {
+      diffEl.textContent   = `¥ ${Math.abs(diff).toLocaleString()}`;
+      statusEl.textContent = `支払いマンが ${Math.abs(diff).toLocaleString()}円多く払えばトントン！`;
+    } else {
+      diffEl.textContent   = `¥ 0`;
+      statusEl.textContent = `ふたりは今、ピッタリ同じ支払い額です！`;
+    }
+
+    // 個人合計
+    document.getElementById('man-total').textContent   = `¥${manTotal.toLocaleString()}`;
+    document.getElementById('woman-total').textContent = `¥${womanTotal.toLocaleString()}`;
+
+    // 履歴
+    document.getElementById('history-list').innerHTML =
+      items.length ? items.join('') : '<div class="empty">まだ記録がありません</div>';
+  }, () => {
+    document.getElementById('sync-status').textContent = '❌ 接続エラー';
+  });
+
+  // ── Toast ──
+  let toastTimer;
+  window.showToast = (msg) => {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+  };
+
+  // 今日の日付をデフォルト設定
+  document.getElementById('date').value = new Date().toISOString().split('T')[0];
+</script>
+
+</body>
+</html>
